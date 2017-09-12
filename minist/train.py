@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
+import numpy as np
 
 from minist import configs
 from minist.data_model import DataModel
@@ -16,16 +17,19 @@ flags.DEFINE_string("save_path", None,
 
 FLAGS = flags.FLAGS
 
-
-
 partial_for_train = 0.8
 
+
+######################  prepare mixed data
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
-traindata = mnist.train
+label_size = 10
 
-dataset = mnist
-input_data = InputData(dataset)
+dataset = np.hstack((mnist.train.labels, mnist.train.images))
+
+#######################
+
+input_data = InputData(src_data=dataset, label_size=label_size)
 
 train_data, test_data = input_data.random_pick(partial_for_train)
 
@@ -87,19 +91,19 @@ with tf.Graph().as_default():
 
     print("setup models")
     with tf.name_scope("Train"):
-        train_input = InputData(train_data.data(), batch_size=batch_size, name="TrainInput")
+        train_input = InputData(train_data.data(), label_size=label_size, batch_size=batch_size, name="TrainInput")
         with tf.variable_scope("Model", reuse=None, initializer=initializer):
             m = DataModel(is_training=True, config=config, data_input=train_input)
         tf.summary.scalar("Training Loss", m.cost)
 
     with tf.name_scope("Valid"):
-        valid_input = InputData(valid_data.data(), name="ValidInput")
+        valid_input = InputData(valid_data.data(), label_size=label_size, name="ValidInput")
         with tf.variable_scope("Model", reuse=True, initializer=initializer):
             mvalid = DataModel(is_training=False, config=config, data_input=valid_input)
         tf.summary.scalar("Validation Loss", mvalid.cost)
 
     with tf.name_scope("Test"):
-        test_input = InputData(test_data.data(), name="ValidInput")
+        test_input = InputData(test_data.data(), label_size=label_size, name="ValidInput")
         with tf.variable_scope("Model", reuse=True, initializer=initializer):
             mtest = DataModel(is_training=False, config=eval_config, data_input=test_input)
 

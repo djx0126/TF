@@ -1,18 +1,23 @@
 import numpy as np
 
 class InputData(object):
-    def __init__(self, src_data, batch_size=0, name=None):
+    def __init__(self, src_data, label_size, batch_size=0, name=None):
         self.__name = name
         self.__raw_data = np.array(src_data)
         self.M = len(src_data)
         self.__next_batch_index = 0
         self.__seq = np.arange(self.M)
         self.__batch_size = batch_size
+        self.__label_size = label_size
         self.shuffle()
 
     def data(self):
         seq = self.__seq[0:self.M]
         return self.__raw_data[seq]
+
+    @property
+    def label_size(self):
+        return self.__label_size
 
     def total_size(self):
         return self.M
@@ -42,15 +47,15 @@ class InputData(object):
             partial = int(partial * self.M)
             seq1 = self.__seq[0: partial]
             part1_data = self.__raw_data[seq1]
-            part1 = InputData(src_data=part1_data, batch_size= self.__batch_size)
+            part1 = InputData(src_data=part1_data, label_size=self.__label_size, batch_size= self.__batch_size)
             seq2 = self.__seq[partial: self.M]
             part2_data = self.__raw_data[seq2]
-            part2 = InputData(src_data=part2_data, batch_size= self.__batch_size)
+            part2 = InputData(src_data=part2_data, label_size=self.__label_size, batch_size= self.__batch_size)
             return (part1, part2)
         return self
 
 if __name__ == '__main__':
-    input_data = InputData(src_data=[[1,1], [2,2], [3,3], [4,4], [5,5], [6,6], [7,7], [8.8], [9.9], [10,10]])
+    input_data = InputData(src_data=[[1,1], [2,2], [3,3], [4,4], [5,5], [6,6], [7,7], [8.8], [9.9], [10,10]], label_size=0)
     print('totol size: ' + str(input_data.total_size()))
 
     train, test = input_data.random_pick(0.8)
@@ -73,9 +78,9 @@ if __name__ == '__main__':
     printNext(train, 3)
 
     print('print next batch with data size = 5')
-    train = InputData(src_data=train.data(), batch_size=5)
+    train = InputData(src_data=train.data(), label_size=0, batch_size=5)
     printNext(train)
 
     print('print next batch with total data')
-    test = InputData(src_data=test.data())
+    test = InputData(src_data=test.data(), label_size=0)
     printNext(test)

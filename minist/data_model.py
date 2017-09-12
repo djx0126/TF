@@ -1,10 +1,5 @@
 import tensorflow as tf
 
-# Escalation_Level  has 3 possible values {'values': [0, 3, 4], 'count': 3}
-# transform it to [0,1] / [1,0]
-# consider line 34, 37
-y_possible_value_count = 2
-
 class DataModel(object):
     def __init__(self, is_training, config, data_input):
         self._is_training = is_training
@@ -15,10 +10,10 @@ class DataModel(object):
 
         self._mixed_data = tf.placeholder(tf.float32, [None, data_width], name="input_data")
         self._keep_prob = tf.placeholder(tf.float32)
-        y_ = tf.slice(self._mixed_data, [0, 0], [-1, y_possible_value_count])
-        x = tf.slice(self._mixed_data, [0, y_possible_value_count], [-1, -1])
+        y_ = tf.slice(self._mixed_data, [0, 0], [-1, data_input.label_size])
+        x = tf.slice(self._mixed_data, [0, data_input.label_size], [-1, -1])
 
-        x_width = data_width - y_possible_value_count
+        x_width = data_width - data_input.label_size
 
         nc_1_size = self._config.fc_size
         with tf.name_scope("fc1"):
@@ -30,9 +25,9 @@ class DataModel(object):
         h_fc1_drop = tf.nn.dropout(h_fc1, self._keep_prob)
 
         with tf.name_scope("fc2"):
-            W_fc2 = self.weight_variable([nc_1_size, y_possible_value_count], "fc2")
+            W_fc2 = self.weight_variable([nc_1_size, data_input.label_size], "fc2")
             tf.add_to_collection('losses', tf.nn.l2_loss(W_fc2))
-            b_fc2 = self.bias_variable([y_possible_value_count], "fc2")
+            b_fc2 = self.bias_variable([data_input.label_size], "fc2")
             y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
         # total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')

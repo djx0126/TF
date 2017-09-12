@@ -7,6 +7,7 @@ class SmallConfig(object):
     beta = 0.1 # control the rate between result error and total_loss
     cnn_filters = [[1, 3, 32], [2, 5, 64]]  # for each item, [a,b,c] a num of convs in one layer, b conv size, c filter count
     fc_size = 128
+    fc_nodes = [128,32]
     padding_valid = True
 
 
