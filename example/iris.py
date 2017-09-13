@@ -42,7 +42,7 @@ def main():
   feature_columns = [tf.contrib.layers.real_valued_column("", dimension=4)]
 
   # Build 3 layer DNN with 10, 20, 10 units respectively.
-  classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,hidden_units=[10, 20, 10],n_classes=3,model_dir="/tmp/iris_model")
+  classifier = tf.contrib.learn.DNNClassifier(feature_columns=feature_columns,hidden_units=[10, 20, 10],n_classes=3,model_dir="tmp/iris_model")
 
   # Define the training inputs
   def get_train_inputs():
