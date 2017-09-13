@@ -1,13 +1,12 @@
 class SmallConfig(object):
     """Small config."""
     init_scale = 0.1
-    keep_prob = 1.0
+    keep_prob = 0.5
     batch_size = 50
-    num_epochs = 5000
+    num_epochs = 50000
     beta = 0.001 # control the rate between result error and total_loss
     cnn_filters = [[1, 3, 32], [2, 5, 64]]  # for each item, [a,b,c] a num of convs in one layer, b conv size, c filter count
-    fc_size = 128
-    fc_nodes = [128,32]
+    fc_nodes = [128, 256, 256, 128]
     padding_valid = True
 
 
@@ -19,7 +18,7 @@ class MidConfig(object):
     num_epochs = 1000
     beta = 0.1
     cnn_filters = [[2, 3, 128], [3, 5, 256]]  # for each item, [a,b,c] a num of convs in one layer, b conv size, c filter count
-    fc_size = 256
+    fc_nodes = [128, 128, 64]
     padding_valid = True
 
 
@@ -31,5 +30,5 @@ class LargeConfig(object):
     num_epochs = 200000
     beta = 0.1
     cnn_filters = [[2, 3, 64], [3, 5, 128], [3, 11, 256], [3, 19, 256], [4, 31, 512]]  # for each item, [a,b,c] a num of convs in one layer, b conv size, c filter count
-    fc_size = 1024
+    fc_nodes = [128, 128, 64]
     padding_valid = True

@@ -15,20 +15,29 @@ class DataModel(object):
 
         x_width = data_width - data_input.label_size
 
-        nc_1_size = self._config.fc_size
-        with tf.name_scope("fc1"):
-            W_fc1 = self.weight_variable([x_width, nc_1_size], "fc1")
-            tf.add_to_collection('losses', tf.nn.l2_loss(W_fc1))
-            b_fc1 = self.bias_variable([nc_1_size], "fc1")
-            h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
 
-        h_fc1_drop = tf.nn.dropout(h_fc1, self._keep_prob)
 
-        with tf.name_scope("fc2"):
-            W_fc2 = self.weight_variable([nc_1_size, data_input.label_size], "fc2")
+        fc_input_size = x_width
+        fc_input_x = x
+
+        for fc_idx in range(len(self._config.fc_nodes)):
+            fc_node_size = self._config.fc_nodes[fc_idx]
+            scope_name = "fc_" + str(fc_idx)
+            with tf.name_scope(scope_name):
+                W_fc1 = self.weight_variable([fc_input_size, fc_node_size], scope_name)
+                tf.add_to_collection('losses', tf.nn.l2_loss(W_fc1))
+                b_fc1 = self.bias_variable([fc_node_size], scope_name)
+                h_fc1 = tf.nn.relu(tf.matmul(fc_input_x, W_fc1) + b_fc1)
+
+            fc_input_x = tf.nn.dropout(h_fc1, self._keep_prob)
+            fc_input_size = fc_node_size
+            pass
+
+        with tf.name_scope("fc_out"):
+            W_fc2 = self.weight_variable([fc_input_size, data_input.label_size], "fc_out")
             tf.add_to_collection('losses', tf.nn.l2_loss(W_fc2))
-            b_fc2 = self.bias_variable([data_input.label_size], "fc2")
-            y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
+            b_fc2 = self.bias_variable([data_input.label_size], "fc_out")
+            y_conv = tf.matmul(fc_input_x, W_fc2) + b_fc2
 
 
         with tf.name_scope('loss'):
@@ -48,8 +57,6 @@ class DataModel(object):
             correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
             correct_prediction = tf.cast(correct_prediction, tf.float32)
             self._accuracy = tf.reduce_mean(correct_prediction)
-
-        # self._cost = tf.reduce_mean(tf.pow(y_conv - y_, 2) + config.beta * total_loss)
 
     def weight_variable(self, shape, scope_name):
         with tf.variable_scope(scope_name):
