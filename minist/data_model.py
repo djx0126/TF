@@ -30,16 +30,19 @@ class DataModel(object):
             b_fc2 = self.bias_variable([data_input.label_size], "fc2")
             y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
-        # total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
 
         with tf.name_scope('loss'):
             cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=y_,
                                                                     logits=y_conv)
-        cross_entropy = tf.reduce_mean(cross_entropy)
-        self._cost = cross_entropy
+
+            cost = tf.reduce_mean(cross_entropy)
+            # total_loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+            # cost = tf.reduce_mean(tf.pow(y_conv - y_, 2) + config.beta * total_loss)
+
+        self._cost = cost
 
         with tf.name_scope('adam_optimizer'):
-            self._train_op = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+            self._train_op = tf.train.AdamOptimizer(1e-4).minimize(cost)
 
         with tf.name_scope('accuracy'):
             correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
@@ -47,12 +50,6 @@ class DataModel(object):
             self._accuracy = tf.reduce_mean(correct_prediction)
 
         # self._cost = tf.reduce_mean(tf.pow(y_conv - y_, 2) + config.beta * total_loss)
-        # self._train_op = tf.train.AdamOptimizer(1e-4).minimize(self._cost)
-        # self._train_op = tf.train.AdamOptimizer(1e-4).minimize(self._cost)
-        #
-        # correct_prediction = tf.equal(y_conv, y_)
-        # self._accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
 
     def weight_variable(self, shape, scope_name):
         with tf.variable_scope(scope_name):
