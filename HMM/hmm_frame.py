@@ -88,7 +88,7 @@ verify_diff_int = transform_to_int(verify_diff, seg_edge)
 print(train_diff_int[-5:])
 
 # split to frames
-frame_length = 16
+frame_length = 8
 
 
 def transform_to_frames(value_array, frame_length):
@@ -156,10 +156,13 @@ def run_test_on_X(X, clf):
     return accuracy
 
 
+sum_accuracy = 0
 for i in range(10):
     clf = train_on_X(X_train)
     accuracy = run_test_on_X(X_train, clf)
     test_accuracy = run_test_on_X(X_test, clf)
     verify_accuracy = run_test_on_X(X_verify, clf)
     print('train:%g, test: %g, verify: %g' % ( accuracy, test_accuracy, verify_accuracy))
+    sum_accuracy += accuracy
 
+print(sum_accuracy/10)
