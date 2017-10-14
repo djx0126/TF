@@ -39,7 +39,7 @@ def build_close_diff_seq(seq):
         if i > 0:
             diff_value = seq[i] - seq[i - 1]
             diff_value_ratio = diff_value / seq[i - 1]
-            log_diff_value_ratio = math.log(diff_value_ratio + 1)
+            log_diff_value_ratio = math.log(diff_value_ratio + 1.0)
             diff_seq.append(log_diff_value_ratio)
     return diff_seq
 
@@ -93,10 +93,9 @@ frame_length = 16
 
 def transform_to_frames(value_array, frame_length):
     length = len(value_array)
-    start = frame_length - 1
     X_frame = []
     Y_frame = []
-    for i in range(start, length - frame_length):  # reserve one for Y
+    for i in range(length - frame_length):  # reserve one for Y
         X_frame.append(value_array[i:i + frame_length + 1])
         Y_frame.append(value_array[i + frame_length:i + frame_length + 1])
     return X_frame, Y_frame
@@ -140,7 +139,7 @@ def predict_next(test_seq, clf):
 
 def train_on_X(X):
     X_train_hmm, X_train_lengths = transform_X_for_hmm(X)
-    clf = MultinomialHMM(n_components=n_components, n_iter=500)
+    clf = MultinomialHMM(n_components=n_components, n_iter=200)
     clf.fit(X_train_hmm, lengths=X_train_lengths)
     return clf;
 
