@@ -176,6 +176,8 @@ sum_loose_accuracy = 0
 sum_loose_test_accuracy = 0
 sum_loose_verify_accuracy = 0
 n_run = 10
+best_accuracy = 0
+
 for i in range(n_run):
     clf = train_on_X(X_train)
     accuracy, loose_accuracy = run_test_on_X(X_train, clf)
@@ -189,6 +191,9 @@ for i in range(n_run):
     sum_loose_accuracy += loose_accuracy
     sum_loose_test_accuracy += test_loose_accuracy
     sum_loose_verify_accuracy += verify_loose_accuracy
+    if accuracy + test_accuracy > best_accuracy:
+        best_accuracy = accuracy + test_accuracy
+        best_model = clf
 
 print(sum_accuracy/n_run)
 print(sum_test_accuracy/n_run)
@@ -198,3 +203,9 @@ print(sum_loose_accuracy/n_run)
 print(sum_loose_test_accuracy/n_run)
 print(sum_loose_verify_accuracy/n_run)
 
+print('start')
+print(best_model.startprob_)
+print('trans')
+print(best_model.transmat_)
+print('emission')
+print(best_model.emissionprob_)
