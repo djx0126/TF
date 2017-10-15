@@ -88,7 +88,7 @@ verify_diff_int = transform_to_int(verify_diff, seg_edge)
 print(train_diff_int[-5:])
 
 # split to frames
-frame_length = 16
+frame_length = 32
 
 
 def transform_to_frames(value_array, frame_length):
@@ -106,6 +106,9 @@ X_test, Y_test = transform_to_frames(test_diff_int, frame_length)
 X_verify, Y_verify = transform_to_frames(verify_diff_int, frame_length)
 print(X_train[-3:])
 print(Y_train[-3:])
+print('size X_train = ' + str(len(X_train)))
+print('size X_test = ' + str(len(X_test)))
+print('size X_verify = ' + str(len(X_verify)))
 
 
 # transform to array for HMM
@@ -122,7 +125,7 @@ def transform_X_for_hmm(X):
 # print(X_train_hmm.shape)
 # print(sum(X_train_lengths))
 
-n_components = 5
+n_components = 2
 
 
 def predict_next(test_seq, clf):
@@ -139,37 +142,59 @@ def predict_next(test_seq, clf):
 
 def train_on_X(X):
     X_train_hmm, X_train_lengths = transform_X_for_hmm(X)
-    clf = MultinomialHMM(n_components=n_components, n_iter=200)
+    clf = MultinomialHMM(n_components=n_components, n_iter=500)
     clf.fit(X_train_hmm, lengths=X_train_lengths)
-    return clf;
+    return clf
 
 def run_test_on_X(X, clf):
     right = 0
+    loose_count = 0
+    loose_rigth = 0
     for test_seq in X:
         expected = test_seq[len(test_seq) - 1]
         predict = predict_next(test_seq, clf)
         if predict == expected:
             right += 1
+        if predict == n_value_seg-1:
+            loose_count += 1
+            if expected == n_value_seg-1 or expected == n_value_seg-2:
+                loose_rigth += 1
+        if predict == 0:
+            loose_count += 1
+            if expected == 0 or expected == 1:
+                loose_rigth += 1
 
     accuracy = right / len(X)
-    return accuracy
+    loose_accuracy = 0.4 if loose_count == 0 else loose_rigth / loose_count
+    return accuracy, loose_accuracy
 
 
 sum_accuracy = 0
 sum_test_accuracy = 0
 sum_verify_accuracy = 0
+sum_loose_accuracy = 0
+sum_loose_test_accuracy = 0
+sum_loose_verify_accuracy = 0
 n_run = 10
 for i in range(n_run):
     clf = train_on_X(X_train)
-    accuracy = run_test_on_X(X_train, clf)
-    test_accuracy = run_test_on_X(X_test, clf)
-    verify_accuracy = run_test_on_X(X_verify, clf)
-    print('train:%g, test: %g, verify: %g' % ( accuracy, test_accuracy, verify_accuracy))
+    accuracy, loose_accuracy = run_test_on_X(X_train, clf)
+    test_accuracy, test_loose_accuracy = run_test_on_X(X_test, clf)
+    verify_accuracy, verify_loose_accuracy = run_test_on_X(X_verify, clf)
+    print('[iter %d]train:%g, test: %g, verify: %g' % (i, accuracy, test_accuracy, verify_accuracy))
+    print('[loose]  train:%g, test: %g, verify: %g' % ( loose_accuracy, test_loose_accuracy, verify_loose_accuracy))
     sum_accuracy += accuracy
     sum_test_accuracy += test_accuracy
     sum_verify_accuracy += verify_accuracy
+    sum_loose_accuracy += loose_accuracy
+    sum_loose_test_accuracy += test_loose_accuracy
+    sum_loose_verify_accuracy += verify_loose_accuracy
 
 print(sum_accuracy/n_run)
 print(sum_test_accuracy/n_run)
 print(sum_verify_accuracy/n_run)
+print('loose')
+print(sum_loose_accuracy/n_run)
+print(sum_loose_test_accuracy/n_run)
+print(sum_loose_verify_accuracy/n_run)
 
