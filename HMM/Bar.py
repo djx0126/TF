@@ -22,3 +22,11 @@ class Bar:
     @property
     def close(self):
         return self._close
+
+    @property
+    def date(self):
+        return self._date
+
+    @property
+    def time(self):
+        return self._time

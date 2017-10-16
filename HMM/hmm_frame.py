@@ -1,5 +1,7 @@
 import math
 import numpy as np
+from matplotlib import cm, pyplot as plt
+import pandas as pd
 
 from HMM.Bar import Bar
 from hmmlearn.hmm import MultinomialHMM
@@ -7,6 +9,11 @@ from hmmlearn.hmm import MultinomialHMM
 train_file_name = 'rb88_daily.txt'
 verify_file_name = 'rb1801_daily.txt'
 
+frame_length = 16
+n_components = 5
+n_value_seg = 5
+n_iter = 500
+ratio_for_test = 0.75
 
 def load_bars(file_name):
     bars = []
@@ -30,6 +37,7 @@ train_bars = load_bars(train_file_name)
 verify_bars = load_bars(verify_file_name)
 
 train_close_seq = list(map(lambda x: x.close, train_bars))
+train_date_seq = list(map(lambda x: x.date, train_bars))
 verify_close_seq = list(map(lambda x: x.close, verify_bars))
 
 
@@ -47,8 +55,6 @@ def build_close_diff_seq(seq):
 train_diff = build_close_diff_seq(train_close_seq)
 verify_diff = build_close_diff_seq(verify_close_seq)
 
-n_value_seg = 5
-
 
 def calc_sort_edge(value_array):
     n_each_seg = int(len(value_array) / n_value_seg)
@@ -64,7 +70,7 @@ def calc_sort_edge(value_array):
 seg_edge = calc_sort_edge(train_diff)
 print(seg_edge)
 
-ratio_for_test = 0.75
+
 train_len = int(ratio_for_test * len(train_diff))
 test_diff = train_diff[train_len:]
 train_diff = train_diff[:train_len]
@@ -88,7 +94,7 @@ verify_diff_int = transform_to_int(verify_diff, seg_edge)
 print(train_diff_int[-5:])
 
 # split to frames
-frame_length = 32
+
 
 
 def transform_to_frames(value_array, frame_length):
@@ -125,7 +131,7 @@ def transform_X_for_hmm(X):
 # print(X_train_hmm.shape)
 # print(sum(X_train_lengths))
 
-n_components = 2
+
 
 
 def predict_next(test_seq, clf):
@@ -142,7 +148,7 @@ def predict_next(test_seq, clf):
 
 def train_on_X(X):
     X_train_hmm, X_train_lengths = transform_X_for_hmm(X)
-    clf = MultinomialHMM(n_components=n_components, n_iter=500)
+    clf = MultinomialHMM(n_components=n_components, n_iter=n_iter)
     clf.fit(X_train_hmm, lengths=X_train_lengths)
     return clf
 
@@ -209,3 +215,32 @@ print('trans')
 print(best_model.transmat_)
 print('emission')
 print(best_model.emissionprob_)
+
+
+def plot_on_bars(bars, name):
+    close_seq = list(map(lambda x: x.close, bars))
+    date_seq = list(map(lambda x: x.date, bars))
+    train_diff = build_close_diff_seq(close_seq)
+    train_diff_int = transform_to_int(train_diff, seg_edge)
+    X_train, Y_train = transform_to_frames(train_diff_int, frame_length)
+
+    predicts = []
+    for test_seq in X_train:
+        predicts.append(predict_next(test_seq, best_model))
+
+    Date = pd.to_datetime(date_seq[frame_length + 1:]).date
+    close = np.array(close_seq[frame_length + 1:])
+
+    plt.figure(name, figsize=(25, 18))
+    for i in range(n_value_seg):
+        pos = (np.array(predicts) == i)
+        plt.plot_date(Date[pos], close[pos], 'o', label='state %d' % i, linewidth=2)
+        plt.legend()
+    plt.draw()
+
+
+plot_on_bars(train_bars, 'train')
+
+plot_on_bars(verify_bars, 'verify')
+
+plt.show()
