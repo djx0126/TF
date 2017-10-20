@@ -9,8 +9,8 @@ from hmmlearn.hmm import MultinomialHMM
 train_file_name = 'rb88_daily.txt'
 verify_file_name = 'rb1801_daily.txt'
 
-frame_length = 16
-n_components = 5
+frame_length = 32
+n_components = 6
 n_value_seg = 5
 n_iter = 500
 ratio_for_test = 0.75
